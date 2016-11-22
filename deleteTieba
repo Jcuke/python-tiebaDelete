@@ -1,0 +1,59 @@
+# -*- coding: utf-8 -*-
+from selenium import webdriver
+import time
+import os
+
+sleepTime = 0.5
+profile_dir = r"C:\Users\wangjinwen.NETFINWORKS\AppData\Local\Google\Chrome\User Data"  # 对应你的chrome的用户数据存放路径
+chrome_options = webdriver.ChromeOptions()
+chrome_options.add_argument("user-data-dir=" + os.path.abspath(profile_dir))
+
+driver = webdriver.Chrome(chrome_options=chrome_options)
+#http://tieba.baidu.com/p/904063298?pid=9883543549&cid=0#9883543549 二中的帖子待删除
+driver.get("http://tieba.baidu.com/i/22440130/my_reply?&pn=52")
+cookie= driver.get_cookies()
+print(cookie)
+print(driver.title)
+now_handle = driver.current_window_handle #获取当前窗口句柄
+while True:
+    page = driver.find_element_by_link_text("下一页>")
+    if page:
+        page.click()
+        time.sleep(sleepTime)
+        print(driver.title)
+        m = driver.find_elements_by_css_selector(".for_reply_context")
+        for reply in m:
+            driver.switch_to_window(now_handle)
+            reply.click()
+            print(driver.title)
+            time.sleep(sleepTime)
+            for handle in driver.window_handles:
+                if handle != now_handle:
+                    driver.switch_to_window(handle)
+                    time.sleep(sleepTime)
+                    print(handle)  # 输出待选择的窗口句柄
+                    delA = ''
+                    try:
+                        delA = driver.find_elements_by_link_text("删除")
+                    except:
+                        driver.close()
+                        driver.switch_to_window(now_handle)
+                        break
+                    if delA:
+                        time.sleep(sleepTime)
+                        print(driver.title)
+                        for dela in delA:
+                            # dela.click()
+                            js = "$('.p_post_del_my')[0].click()"
+                            driver.execute_script(js)
+                            time.sleep(sleepTime)
+                            js = "$('input[value=\"确定\"]').click()"
+                            driver.execute_script(js)
+                            time.sleep(sleepTime)
+                    driver.close()
+                    driver.switch_to_window(now_handle)
+    else:
+        break
+
+
+# driver.quit()
